@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ディズニーシー ショー抽選</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Great+Vibes&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="theme-color" content="#000000" />
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+</head>
+
+<body>
+  <div id="stage">
+    <div id="stage-inner">
+      <!-- ホーム -->
+      <div id="screen-home" class="screen hidden">
+        <p class="top-message">
+          ご希望のショーをタッチしてください。<br />
+          各ショーの抽選は1グループにつき1回のみです。
+        </p>
+
+        <div class="show-select-container">
+          <div class="show-button" data-show-name="BIG BAND BEAT" data-show-subtitle="BROADWAY MUSIC THEATER">
+            <span class="show-subtitle">BROADWAY MUSIC THEATER</span>
+            <span class="show-title">BIG BAND BEAT</span>
+          </div>
+
+          <div class="show-button" data-show-name='PIRATES SUMMER BATTLE "GET WET!"'>
+            <span class="show-title">PIRATES<br />SUMMER BATTLE<br />"GET WET!"</span>
+          </div>
+        </div>
+
+        <div class="language-buttons-container">
+          <div class="lang-button">English</div>
+          <div class="lang-button">中文（繁體）</div>
+          <div class="lang-button">中文（简体）</div>
+          <div class="lang-button">한국어</div>
+        </div>
+      </div>
+
+<!-- 時間選択 -->
+<div id="screen-show-times" class="screen">
+  <button class="back-button" data-target="screen-home">戻る</button>
+
+  <div class="time-select-layout-unified">
+    <!-- ① 見出し（中央上固定）※ 左パネルの外に置く -->
+    <div class="bbb-headline">
+      <div class="bbb-headline-upper">
+        グループ全員分のパスポートをご用意のうえ<br>
+        ご希望の公演ボタンにタッチしてください。
+      </div>
+      <div class="bbb-headline-lower">
+        <p>このショーの抽選は1グループにつき1回のみです。</p>
+        <p>3才以下のお子様をお連れの方はキャストにお申し出ください。</p>
+      </div>
+    </div>
+
+    <!-- ② 左パネル（中身は使わない。JS互換のため残す） -->
+    <div class="left-panel-unified">
+
+
+<!-- ←このブロックを追加：左側にショータイトル＆サブタイトル -->
+<div class="left-showname">
+  <div id="left-show-subtitle" class="left-subtitle"></div>
+  <div id="left-show-title" class="left-title"></div>
+</div>
+
+      <div class="show-info">
+        <span id="time-select-subtitle" class="time-show-subtitle"></span>
+        <h1 id="time-select-title" class="time-show-title"></h1>
+      </div>
+    </div>
+
+    <!-- ③ 右：時間ボタン列 -->
+    <div class="right-panel-unified-times"></div>
+
+    <!-- ④ 外国語ボタン：中央下固定 -->
+    <div class="language-buttons-container time-lang-buttons">
+      <div class="lang-button">English</div>
+      <div class="lang-button">中文（繁體）</div>
+      <div class="lang-button">中文（简体）</div>
+      <div class="lang-button">한국어</div>
+    </div>
+  </div>
+</div>
+
+      <!-- 人数（QRスキャン） -->
+      <div id="screen-person-select" class="screen hidden">
+        <button class="back-button" data-target="screen-show-times">戻る</button>
+
+        <div id="person-show-detail-top" class="win-show-detail-top">
+          <div id="person-show-subtitle" class="win-subtitle-text"></div>
+          <div id="person-show-title" class="win-title-text"></div>
+        </div>
+
+        <div class="person-main">
+          <div class="person-toprow">
+            <span id="person-badge" class="final-badge">第3回目公演</span>
+            <span id="person-time" class="final-time">14:50</span>
+          </div>
+
+          <h2 class="person-total">
+            <span class="label">合計人数</span>
+            <strong id="person-count">0</strong>
+          </h2>
+
+          <p class="person-message">
+            合計人数をお確かめの上<br />
+            確認ボタンにタッチしてください。
+          </p>
+
+          <button id="to-final-confirm" class="compass-button confirm-action">確認</button>
+        </div>
+
+        <div class="person-right-wrap">
+          <p class="person-right-note">
+            図の位置にパスポートのコードを<br />
+            1枚ずつかざしてください。
+          </p>
+          <div class="person-right-bg"></div>
+        </div>
+
+        <video id="qr-video" playsinline autoplay muted style="display:none"></video>
+        <canvas id="qr-canvas" style="display:none"></canvas>
+      </div>
+
+      <!-- 最終確認 -->
+      <div id="screen-final-confirm" class="screen hidden">
+        <button class="back-button" data-target="screen-person-select">戻る</button>
+
+        <div id="final-show-detail-top" class="win-show-detail-top">
+          <div id="final-show-subtitle" class="win-subtitle-text"></div>
+          <div id="final-show-title" class="win-title-text"></div>
+        </div>
+
+        <div class="confirm-card">
+          <div class="confirm-left">
+            <div class="confirm-toprow">
+              <span id="final-confirm-badge" class="final-badge">第3回目公演</span>
+              <span id="final-confirm-time-str" class="final-time">14:50</span>
+            </div>
+
+            <h2 class="confirm-total">
+              <span class="label">合計人数</span>
+              <strong id="final-confirm-count-num">0</strong>
+            </h2>
+          </div>
+
+          <div class="confirm-divider"></div>
+
+          <div class="confirm-right">
+            <p class="confirm-rline">左記の内容でよろしければ</p>
+            <p class="confirm-rline">下のスタートボタンにタッチしてください。</p>
+            <p class="confirm-rline">スタート後の変更・取り消しは</p>
+            <p class="confirm-rline">できません。</p>
+          </div>
+
+          <button id="start-lottery" class="compass-button confirm-start">スタート</button>
+        </div>
+      </div>
+
+      <!-- 抽選中 -->
+      <div id="screen-drawing" class="screen hidden">
+        <p class="drawing-message">抽選中です。<br />しばらくお待ちください。</p>
+        <h2 id="drawing-show-subtitle" class="drawing-subtitle"></h2>
+        <h1 id="drawing-show-name" class="drawing-title"></h1>
+      </div>
+
+      <!-- はずれ（BBB） -->
+      <div id="screen-lose-bbb" class="screen hidden" style="background-image:url('./background-1.jpg')">
+        <button id="lose-to-home-bbb" class="lose-pill">スタート画面へ</button>
+        <div class="lose-content">
+          <h1 class="lose-title">はずれてしまいました。</h1>
+          <p class="lose-note">なお、2階席は先着順でのご案内となります。</p>
+          <p class="lose-note">鑑賞を希望される場合は、<br />全員そろって会場へお越しください。</p>
+          <p class="lose-bottom">このショーの抽選は1グループにつき1回のみです。</p>
+        </div>
+      </div>
+
+      <!-- はずれ（PIRATES） -->
+      <div id="screen-lose-pirates" class="screen hidden" style="background-image:url('./background-1.jpg')">
+        <button id="lose-to-home-pirates" class="lose-pill">スタート画面へ</button>
+        <div class="lose-content">
+          <h1 class="lose-title">はずれてしまいました。</h1>
+          <p class="lose-note">なお、一部の座席は先着順でのご案内となります。</p>
+          <p class="lose-note">鑑賞を希望される場合は、</p>
+          <p class="lose-note">全員そろって会場へお越しください。</p>
+          <p class="lose-bottom">このショーの抽選は1グループにつき1回のみです。</p>
+        </div>
+      </div>
+
+      <!-- 当たり -->
+      <div id="screen-win" class="screen hidden">
+        <div class="win-ticket-container">
+          <div class="win-inner-ticket">
+            <div class="ticket-divider"></div>
+
+            <div class="ticket-left-content">
+              <div id="win-show-detail-top" class="win-show-detail-top">
+                <div id="win-show-subtitle-top" class="win-subtitle-text"></div>
+                <div id="win-show-title-top" class="win-title-text"></div>
+              </div>
+
+              <div class="win-time-tag">
+                <p id="win-show-time-text">第2回目公演</p>
+              </div>
+
+              <div class="ticket-issuing"><span class="line-single">発券中</span></div>
+
+              <div class="win-ticket-count-display">
+                <p>当選枚数 <span id="win-ticket-count">1</span> 枚</p>
+              </div>
+            </div>
+
+            <div class="ticket-right-content">
+              <p class="win-congrats">おめでとうございます！</p>
+              <p class="win-message">下部の取り出し口より<br />人数分の当選券をお取りください。</p>
+              <p class="win-message-caution">必ず枚数を確認し<br />裏面をお読みください。</p>
+              <div class="compass-watermark"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /#stage-inner -->
+  </div> <!-- /#stage -->
+
+  <script defer src="./script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(()=>{});
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,408 @@
+/* 文字の自動拡大を抑止（iPad Safari） */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* 画面全体（セーフエリア対応） */
+#stage{
+  position: fixed;
+  inset: env(safe-area-inset-top) env(safe-area-inset-right)
+         env(safe-area-inset-bottom) env(safe-area-inset-left);
+  display: grid;
+  place-items: center;
+  background: #000;
+  overflow: hidden;
+}
+
+/* 基準 1280×800 を中央でスケール */
+#stage-inner{
+  width: 1280px;
+  height: 800px;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: center;
+  position: relative;
+}
+
+/* 各画面は stage-inner 内で全画面に広げる */
+#stage-inner .screen{ position: absolute; inset: 0; }
+
+/* 基本 */
+body{
+  margin:0; font-family:'Shippori Mincho',serif; background:#000; overflow:hidden;
+  height:100dvh; width:100vw; display:flex; justify-content:center; align-items:center;
+  color:#4a2c2a; touch-action:manipulation;
+}
+.screen{
+  position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center;
+  text-align:center; background-size:cover; background-position:center; background-repeat:no-repeat; z-index:1; transition:opacity .3s;
+}
+.screen.hidden{ display:none !important; }
+h1,h2{ margin:0; font-weight:700; }
+p{ margin:0; line-height:1.8; }
+
+.back-button{
+  position:absolute; top:40px; right:80px; width:70px; height:70px; border-radius:50%;
+  background:linear-gradient(#6daddc,#4a8cbf); border:1px solid #3e7aaa; color:#fff; display:flex; justify-content:center; align-items:center;
+  font-size:16px; z-index:11; -webkit-appearance:none; box-shadow:0 2px 4px rgba(0,0,0,.2); cursor:pointer;
+}
+.back-button:active{ background:#4a8cbf; }
+
+.compass-button{
+  background:url('./compass-button.png') no-repeat center/cover; width:250px; height:250px; border:none; border-radius:50%;
+  display:flex; justify-content:center; align-items:center; color:#fff; font-size:2.2em; font-weight:700; box-shadow:0 5px 15px rgba(0,0,0,.3);
+}
+.compass-button:active{ transform:scale(.98); box-shadow:0 2px 8px rgba(0,0,0,.3); }
+
+/* ---------- ホーム ---------- */
+#screen-home{ padding-top:50px; justify-content:flex-start; background-image:url('./background-1.jpg'); }
+.top-message{ font-size:1.8em; font-weight:700; line-height:1.4; margin-bottom:50px; letter-spacing:.2em; }
+.show-select-container{ display:flex; justify-content:space-around; width:90%; max-width:1000px; margin-top:100px; position:relative; z-index:10; }
+.show-button{
+  width:45%; height:150px; padding:20px 0; position:relative; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; align-items:center;
+  background:#fff; border:2px solid #c8bda9; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,.1); transition:.1s;
+}
+.show-button:active{ transform:translateY(2px); box-shadow:0 2px 8px rgba(0,0,0,.15); }
+.show-button[data-show-name="BIG BAND BEAT"],
+#screen-home .show-button[data-show-name*="PIRATES SUMMER"]{
+  background: transparent !important; border: none !important; box-shadow: none !important;
+}
+#screen-home .show-button[data-show-name*="PIRATES SUMMER"] .show-title,
+#screen-home .show-button[data-show-name*="PIRATES SUMMER"] .show-subtitle{
+  position: relative; left: 20px;
+}
+.show-subtitle{ font-size:.9em; z-index:3; }
+.show-title{ font-size:2.5em; line-height:1.1; font-weight:700; z-index:3; white-space:nowrap; }
+
+.language-buttons-container{
+  position:absolute; bottom:80px; width:100%; display:flex; justify-content:center; gap:40px; z-index:10;
+}
+.language-buttons-container .lang-button{
+  min-width:120px; padding:6px 12px; border-radius:10px; background:rgba(255,255,255,.85); border:1.5px solid rgba(0,0,0,.2);
+  color:#333; font-weight:600; font-size:16px; box-shadow:0 2px 4px rgba(0,0,0,.1);
+}
+
+/* ===== 時間選択（クリーン版） ===== */
+#screen-show-times{
+  background-image:url('./background-2.jpg');
+  background-size:cover; background-position:center; background-repeat:no-repeat;
+  color:#000; display:flex; justify-content:center; align-items:center;
+  /* 右列のレイアウト変数 */
+  --time-right:180px;   /* 右端からの距離 */
+  --time-top:100px;     /* 右列の開始Y（下げたい時は値を大きく） */
+  --time-gap:12px;      /* ボタンの縦間隔（詰めるなら 8〜12） */
+  --time-out:-100px;    /* 時刻ラベルの張り出し量 */
+}
+#screen-show-times .time-select-layout-unified{
+  position:relative; display:flex; width:92%; max-width:1300px;
+  background:transparent; border:none; box-shadow:none; overflow:visible;
+}
+
+/* 左パネルは“器”だけ。中央寄せにもしない */
+#screen-show-times .left-panel-unified{
+  flex:0 0 52%; padding-left:60px; position:relative;
+}
+/* もとのタイトルは重複回避で非表示 */
+#screen-show-times .left-panel-unified .show-info{ display:none !important; }
+
+/* 中央上の見出し（2段） */
+#screen-show-times .bbb-headline{
+  position:absolute; top:38px; left:50%; transform:translateX(-50%);
+  width:76%; text-align:center; z-index:5; pointer-events:none;
+}
+#screen-show-times .bbb-headline-upper{
+  font-size:1.55rem; font-weight:700; letter-spacing:.06em; line-height:1.5; margin:0 0 10px;
+}
+#screen-show-times .bbb-headline-lower{
+  font-size:1.05rem; line-height:1.9; opacity:.98;
+}
+#screen-show-times .bbb-headline-lower p{ margin:2px 0; }
+
+/* 右：時間ボタン列（位置は変数で） */
+#screen-show-times .right-panel-unified-times{
+  position:absolute; top:var(--time-top); right:var(--time-right);
+  display:flex; flex-direction:column; gap:var(--time-gap);
+}
+
+/* 時間ボタンは内容幅にフィット（白枠が広がらない） */
+#screen-show-times .time-button{
+  position:relative; display:inline-flex; align-items:center; justify-content:flex-start;
+  width:max-content; min-width:0; padding:6px 16px 6px 24px;
+  border:1px solid rgba(0,0,0,.08); border-radius:10px; background:rgba(255,255,255,.95);
+  box-shadow:0 4px 8px rgba(0,0,0,.10); white-space:nowrap;
+}
+#screen-show-times .time-text{ display:flex; align-items:center; gap:10px; color:#2e2520; font-weight:700; font-size:1.3rem; }
+#screen-show-times .time-marker{ width:12px; height:12px; margin-right:10px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #a9d1ff 0%, #72aee6 60%, #5b8fc7 100%); border:2px solid #fff; box-shadow:0 1px 0 rgba(0,0,0,.15);
+}
+/* 金の飾りタブ */
+#screen-show-times .time-button::before,
+#screen-show-times .time-button::after{
+  content:""; position:absolute; top:50%; transform:translateY(-50%);
+  width:36px; height:26px;
+  background:radial-gradient(140% 90% at 50% 50%, #e7d99a 0%, #d7bd6a 55%, #b48a34 100%);
+  clip-path:polygon(0 50%, 25% 0, 95% 0, 75% 50%, 95% 100%, 25% 100%);
+  border:1px solid rgba(120,90,20,.25); border-radius:4px; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1));
+}
+#screen-show-times .time-button::before{ left:-22px; }
+#screen-show-times .time-button::after{ right:-22px; transform:translateY(-50%) scaleX(-1); }
+
+/* 時刻は右外に張り出し */
+#screen-show-times .time-str{
+  position:absolute; right:var(--time-out); top:50%; transform:translateY(-50%);
+  min-width:64px; text-align:left; color:#2e2520; font-weight:700; font-size:1.1rem;
+}
+
+/* 外国語ボタン：一番下・中央固定（#stage-inner基準） */
+#screen-show-times .language-buttons-container{
+  position:absolute; left:50%; bottom:28px; transform:translateX(-50%);
+  display:flex; justify-content:center; gap:18px; width:auto; z-index:10;
+}
+#screen-show-times .lang-button{
+  min-width:120px; padding:6px 12px; border-radius:10px;
+  background:rgba(255,255,255,.85); border:1.5px solid rgba(0,0,0,.2);
+  color:#333; font-weight:600; font-size:16px; box-shadow:0 2px 4px rgba(0,0,0,.1);
+}
+
+/* “戻る” は非表示（BBB をホーム扱いに） */
+#screen-show-times .back-button{ display:none !important; }
+
+/* タブレット以下の微調整 */
+@media (max-width:1024px){
+  #screen-show-times{ --time-right:90px; --time-top:150px; --time-gap:12px; --time-out:-44px; }
+  #screen-show-times .bbb-headline{ top:28px; width:84%; }
+  #screen-show-times .language-buttons-container{ bottom:20px; gap:14px; }
+}
+
+/* ---------- 人数 ---------- */
+#screen-person-select{
+  position:relative; width:100%; height:100%; background-image:url('./background-2.jpg'); background-size:cover; background-position:center;
+  color:#2b1b16; overflow:hidden; font-family:'Shippori Mincho',serif;
+  --machine-w:560px; --machine-h:650px; --machine-right:80px; --machine-bottom:-40px; --note-gap:-100px;
+}
+#person-show-detail-top{ position:absolute; top:80px; left:80px; text-align:left; }
+#person-show-subtitle{ font-size:1.03rem; letter-spacing:.18em; text-transform:uppercase; opacity:.92; margin-bottom:6px; }
+#person-show-title{ font-size:2.2rem; font-weight:700; letter-spacing:.03em; line-height:1.1; }
+.person-toprow{ position:absolute; left:290px; top:190px; display:flex; align-items:center; gap:18px; z-index:2; }
+.final-time{ font-size:1.15rem; font-weight:700; color:#2b1b16; letter-spacing:.05em; margin-left:10px; }
+
+.person-total{
+  position: absolute; left: 190px; top: 300px; margin: 0; font-weight: 700; line-height: 1.15; text-align: left; color: #2b1b16;
+}
+.person-total .label{ font-size: 2.5rem; letter-spacing: .06em; margin-right: .35em; }
+.person-total strong{ font-size: 3.2rem; letter-spacing: .04em; }
+.person-total .label, .person-total strong{ position: relative; left: 80px; }
+.person-total::after{
+  content: ""; display: block; margin-top: 12px; width: 430px; height: 2px; background: rgba(0,0,0,.55); border-radius: 1px;
+}
+
+.pop { animation: pop .18s ease-out; }
+@keyframes pop { from { transform: scale(1.0); } 60% { transform: scale(1.12); } to { transform: scale(1.0); } }
+
+.confirm-action{
+  position:absolute; left:35%; bottom:75px; transform:translateX(-50%);
+  background:url('./compass-button.png') no-repeat center/cover; width:242px; height:242px; color:#fff; font-size:1.8rem; font-weight:700; border:none; border-radius:50%;
+  cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.3); z-index:2;
+}
+.confirm-action:active{ transform:translateX(-50%) scale(.98); }
+
+.person-message{
+  position:absolute; left:35%; bottom:calc(45px + 242px + 20px); transform:translateX(-50%); text-align:center; font-size:1.4rem; line-height:2; margin:0; z-index:2;
+}
+
+.person-right-wrap{ position:absolute; right:var(--machine-right); bottom:var(--machine-bottom); width:var(--machine-w); height:var(--machine-h); z-index:2; pointer-events:none; }
+.person-right-bg{ position:absolute; left:0; right:0; bottom:0; width:100%; height:100%; background:url('./lottery machine.png') no-repeat center bottom/contain; opacity:.95; z-index:1; }
+.person-right-note{
+  position:absolute; left:0; right:0; bottom:calc(100% + var(--note-gap)); width:100%; text-align:center; font-size:1.15rem; line-height:1.9; color:#2b1b16; text-shadow:0 0 6px rgba(255,255,255,.85); margin:0; z-index:3;
+}
+
+@media (max-width:1100px){
+  #screen-person-select{ --machine-w:460px; --machine-h:560px; --machine-right:120px; --machine-bottom:0px; }
+  .person-toprow{ left:230px; top:180px; }
+  .person-total{ left:230px; top:250px; }
+  .person-total .label, .person-total strong{ left:30px; }
+  .confirm-action{ left:45%; bottom:90px; }
+  .person-message{ left:45%; bottom:calc(90px + 242px + 16px); }
+  .person-total::after{ width:360px; }
+}
+
+/* ---------- 最終確認 ---------- */
+#screen-final-confirm{ background-image:url('./background-3.jpg'); }
+#screen-final-confirm .win-show-detail-top{ top:82px; left:80px; right:30px; }
+.confirm-card{
+  display:grid; grid-template-columns:1fr 1px 1fr; align-items:center; width:82%; max-width:1120px; min-height:320px; padding:42px 48px; border-radius:12px; background:transparent; border:none; box-shadow:none; position:relative;
+}
+.confirm-divider{ width:1px; height:100%; background:rgba(0,0,0,.12); }
+.confirm-left{ padding-right:40px; transform:translateY(-36px); }
+.confirm-right{ padding-left:28px; transform:translate(-22px,-36px); text-align:left; max-width:420px; line-break:strict; word-break:keep-all; }
+.confirm-right .confirm-rline{ font-size:1.30rem; line-height:2.05; color:#2a2a2a; margin:0; }
+.confirm-right .confirm-rline + .confirm-rline{ margin-top:8px; }
+.confirm-total{ margin:16px 0 0; font-weight:700; line-height:1.15; }
+.confirm-total .label{ font-size:2.5rem; letter-spacing:.06em; margin-right:.35em; }
+.confirm-total strong{ font-size:3.2rem; letter-spacing:.04em; }
+.confirm-total::after{ content:""; display:block; margin-top:14px; width:440px; max-width:46vw; height:2px; background:rgba(0,0,0,.55); border-radius:1px; }
+.confirm-start{ position:absolute; left:66.6%; bottom:-130px; transform:translateX(-50%); z-index:5; }
+.confirm-start:active{ transform:translateX(-50%) scale(.98); }
+
+@media (max-width:1024px){
+  .confirm-card{ width:88%; padding:36px; }
+  .confirm-start{ bottom:120px; }
+  .confirm-right{ transform:translate(-14px,-26px); max-width:380px; font-size:1.05rem; }
+}
+
+/* ---------- 抽選中／当落 ---------- */
+#screen-drawing{ background-image:url('./background-1.jpg'); color:#000; }
+.drawing-message{ font-size:2em; font-weight:700; margin-bottom:30px; text-shadow:none; }
+.drawing-subtitle{ font-size:1.5em; margin-bottom:15px; text-shadow:none; }
+.drawing-title{ font-size:3em; margin-bottom:50px; text-shadow:none; }
+
+#screen-lose{ background-image:url('./background-1.jpg'); color:#2b1b16; display:flex; justify-content:center; align-items:center; }
+#screen-win { background-image:url('./background-3.jpg'); color:#2b1b16; display:flex; justify-content:center; align-items:center; }
+
+.lose-pill{
+  position:absolute; top:64px; left:50%; transform:translateX(-50%); padding:12px 28px; border-radius:999px; border:2px solid #d7e6f7;
+  background:linear-gradient(#79aee0,#5f96cb); color:#fff; font-weight:700; font-size:1.05rem; letter-spacing:.05em; box-shadow:0 2px 6px rgba(0,0,0,.18); cursor:pointer; -webkit-appearance:none;
+}
+.lose-content{ text-align:center; max-width:880px; padding:0 24px; transform:translateY(-20px); }
+.lose-title{ font-size:1.9rem; font-weight:600; letter-spacing:.06em; margin:0 0 16px; text-shadow:none; }
+.lose-note, .lose-bottom{ font-size:1.9rem; line-height:1.9; }
+
+.win-ticket-container{ width:min(1180px,88vw); height:min(62vh,540px); background:transparent; border:none; box-shadow:none; padding:0; }
+.win-inner-ticket{ position:relative; display:flex; width:100%; height:100%; }
+.ticket-divider{ position:absolute; left:33.333%; top:-20%; bottom:-20%; width:2.5px; background:#6f6556; opacity:.8; transform:translateX(-50%); }
+.ticket-left-content{ flex:1; position:relative; display:flex; align-items:center; justify-content:flex-start; padding-left:107px; }
+.ticket-right-content{ flex:2; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:0 24px 185px; text-align:center; }
+.ticket-right-content>*{ max-width:72%; }
+
+.win-show-detail-top{ position:absolute; top:5px; left:30px; right:22px; text-align:left; }
+.win-subtitle-text{ font-size:1.03rem; letter-spacing:.20em; text-transform:uppercase; opacity:.92; color:#1a1a1a; margin-bottom:6px; }
+.win-title-text{ font-size:2.15rem; font-weight:700; letter-spacing:.02em; color:#1a1a1a; line-height:1.1; }
+.win-title-text.long{ font-size:1.85rem; }
+.win-time-tag{
+  position:absolute; top:118px; left:110px; background:#fff; color:#2c5aa0; border:2px solid #c9d8ee; border-radius:999px; padding:8px 20px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,.12); font-size:1.25rem;
+}
+.ticket-issuing{ text-align:left; line-height:1; letter-spacing:.99em; }
+.ticket-issuing .line-single{ display:inline-block; font-size:3.1rem; font-weight:700; }
+.win-ticket-count-display{
+  position:absolute; left:14px; right:8px; bottom:5px; padding-top:8px; border-top:1px solid rgba(0,0,0,.35); font-size:1.26rem !important; font-weight:700; color:#1c120f;
+}
+
+.win-congrats{
+  font-family:'Shippori Mincho',serif; font-weight:700; font-size:2.9rem; letter-spacing:.05em; margin:0 0 10px; color:#fff;
+  text-shadow:0 0 0 #5b86c4,0 0 1px #5b86c4,0 1px 0 #5b86c4,1px 0 0 #5b86c4,-1px 0 0 #5b86c4,0 -1px 0 #5b86c4; white-space:nowrap; text-align:center;
+}
+.win-message{ font-size:1.44rem; line-height:2.05; color:#2a2a2a; }
+.win-message-caution{ font-size:1.30rem; line-height:2.05; color:#2a2a2a; margin-top:6px; }
+.compass-watermark{ display:none !important; }
+
+@media (max-width:1024px){
+  .ticket-right-content{ padding:0 20px 165px; }
+  .ticket-right-content>*{ max-width:76%; }
+  .win-congrats{ font-size:2.65rem; }
+  .win-title-text{ font-size:2.0rem; }
+  .win-title-text.long{ font-size:1.75rem; }
+}
+
+/* バッジ */
+.final-badge{
+  position:relative; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 26px 10px 42px;
+  border-radius:999px; background:#fff; border:2px solid #c9d8ee; color:#000; font-weight:700; font-size:1.12rem; box-shadow:0 2px 6px rgba(0,0,0,.1);
+  background-image:radial-gradient(circle at 35% 35%, #a9d1ff 0%, #72aee6 60%, #5b8fc7 100%); background-size:12px 12px; background-repeat:no-repeat; background-position:18px 50%; margin-right:14px;
+}
+.final-badge::before, .final-badge::after{
+  content:""; position:absolute; top:50%; transform:translateY(-50%); width:36px; height:26px;
+  background:radial-gradient(140% 90% at 50% 50%, #e7d99a 0%, #d7bd6a 55%, #b48a34 100%);
+  clip-path:polygon(0 50%, 25% 0, 95% 0, 75% 50%, 95% 100%, 25% 100%);
+  border:1px solid rgba(120,90,20,.25); border-radius:4px; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1));
+}
+.final-badge::before{ left:-26px; }
+.final-badge::after{ right:-26px; transform:translateY(-50%) scaleX(-1); }
+#screen-final-confirm .final-badge{ font-size:1.15rem; padding:10px 28px 10px 44px; }
+
+
+/* --- 位置の最終微調整 --- */
+
+/* 1) 時間ボタンをもう少し上へ（列全体） */
+#screen-show-times{
+  --time-top: -150px;      /* 既存の 100px から少し上へ */
+}
+
+/* 2) 見出し（注意書き含む）を全体的に上へ */
+#screen-show-times .bbb-headline{
+  top: -360px          /* 既存の 38px -> 24px に */
+}
+
+/* 3) 注意書き（下段）をさらに詰めて上へ */
+#screen-show-times .bbb-headline-lower{
+  margin-top: 4px;       /* 行間を少し詰める */
+  line-height: 1.75;     /* 既存 1.9 よりタイトに */
+}
+
+/* 4) 外国語ボタンをもっと下へ（画面の最下部寄り） */
+#screen-show-times .language-buttons-container{
+  bottom: -320px;          /* 既存の 28px -> 12px に */
+}
+
+/* タブレット以下のときのバランスも調整（任意） */
+@media (max-width:1024px){
+  #screen-show-times{ --time-top: 140px; }
+  #screen-show-times .bbb-headline{ top: 18px; }
+  #screen-show-times .language-buttons-container{ bottom: 10px; }
+}
+
+/* 左側の空きにショータイトル＆サブタイトル表示 */
+#screen-show-times .left-showname{
+  position: absolute;
+  left: 120px;                 /* 左余白（60〜100pxで微調整） */
+  top: 50%;                   /* 縦中央 */
+  transform: translateY(-50%);
+  text-align: left;
+  line-height: 1.1;
+  z-index: 4;                 /* 時間ボタンより下げたいなら 2〜3 に */
+  pointer-events: none;       /* クリック干渉しない */
+  max-width: 540px;           /* 伸び過ぎ防止（任意） */
+}
+
+/* サブタイトル（上） */
+#screen-show-times .left-subtitle{
+  font-size: 1.2rem;
+  letter-spacing: .18em;
+  opacity: .95;
+  margin: 0 0 6px;
+  text-transform: uppercase;  /* 英字は大文字化 */
+}
+
+/* タイトル（下） */
+#screen-show-times .left-title{
+  font-size: 3.2rem;          /* お好みで 2.6〜3.2rem */
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+/* 画面が狭い時は少しだけ縮める */
+@media (max-width:1024px){
+  #screen-show-times .left-showname{ left: 54px; max-width: 420px; }
+  #screen-show-times .left-subtitle{ font-size: .98rem; }
+  #screen-show-times .left-title{ font-size: 2.5rem; }
+}
+
+
+/* ===== 上の文字を少し大きく（時間選択の見出し） ===== */
+#screen-show-times .bbb-headline-upper{
+  font-size: 2.1rem;   /* 既存 1.55rem → 少し大きく */
+}
+#screen-show-times .bbb-headline-lower{
+  font-size: 1.3rem;   /* 既存 1.05rem → 少し大きく */
+  line-height: 1.85;    /* 文字が大きくなるぶん行間を少し広げる（お好みで） */
+}
+
+/* タブレット以下は控えめに（任意） */
+@media (max-width:1024px){
+  #screen-show-times .bbb-headline-upper{ font-size: 1.6rem; }
+  #screen-show-times .bbb-headline-lower{ font-size: 1.08rem; line-height: 1.8; }
+}
+
+/* ===== 右の時間ボタンの間隔を広げる ===== */
+/* 変数だけ上書き（列全体のgapを広げる） */
+#screen-show-times{
+  --time-gap: 40px;   /* 既存 12px → 好みで 16〜24px くらい */
+}
+
