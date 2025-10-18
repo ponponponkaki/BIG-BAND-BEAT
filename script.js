@@ -34,10 +34,10 @@ const screens = {
   // BBBのみ
   const SHOW_TIMES = {
     'BIG BAND BEAT': [
-      { text: '第2回目公演', str: '13:45' },
-      { text: '第3回目公演', str: '15:15' },
-      { text: '第4回目公演', str: '17:15' },
-      { text: '第5回目公演', str: '18:45' },
+      { text: '第2回目公演', str: '13:50' },
+      { text: '第3回目公演', str: '15:20' },
+      { text: '第4回目公演', str: '17:20' },
+      { text: '第5回目公演', str: '18:50' },
     ]
   };
 
@@ -230,7 +230,7 @@ const screens = {
     if (target === screens.win) {
       Sound.loop('draw', false);
       Sound.play('win');
-      setTimeout(() => navigateTo(screens.showTimes), 15000); // 常に時間画面へ
+      setTimeout(() => navigateTo(screens.showTimes), 10000); // 常に時間画面へ
     } else if (target === screens.loseBBB) {
       Sound.loop('draw', false);
       Sound.play('lose');
